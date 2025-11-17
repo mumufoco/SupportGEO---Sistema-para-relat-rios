@@ -124,3 +124,66 @@ _modules/*
 
 /results/
 /phpunit*.xml
+
+#-------------------------
+# Support GEO - Sistema de Relatórios
+#-------------------------
+
+# Relatórios Gerados
+writable/reports/*
+!writable/reports/.gitkeep
+public/downloads/*
+!public/downloads/.gitkeep
+public/exports/*
+!public/exports/.gitkeep
+*.pdf
+*.xlsx
+*.xls
+*.csv
+*.doc
+*.docx
+
+# Arquivos de Backup
+*.backup
+*.bak
+*.sql
+*.sql.gz
+*.sql.zip
+backups/
+
+# Dados Temporários
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Certificados e Chaves (Segurança)
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+ssl/
+certificates/
+
+# Configurações de Deploy
+.deploy/
+deploy.php
+deployer.phar
+
+# Arquivos de Configuração Local
+config.local.php
+database.local.php
+
+# Node Modules (caso use ferramentas frontend)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Arquivos de Build Frontend
+public/assets/dist/*
+!public/assets/dist/.gitkeep
+public/css/compiled/*
+!public/css/compiled/.gitkeep
+public/js/compiled/*
+!public/js/compiled/.gitkeep
