@@ -43,4 +43,14 @@ $routes->group('api', ['namespace' => 'App\Controllers\API'], function($routes) 
     $routes->get('pdf/gerar/(:num)', 'PDFController::gerarSondagem/$1');
     $routes->get('pdf/preview/(:num)', 'PDFController::preview/$1');
     $routes->get('pdf/download/(:any)', 'PDFController::download/$1');
+
+    $routes->get('sondagens/(:num)/fotos', 'FotoController::index/$1');
+    $routes->post('sondagens/(:num)/fotos', 'FotoController::upload/$1');
+    $routes->get('fotos/(:num)', 'FotoController::show/$1');
+    $routes->put('fotos/(:num)', 'FotoController::atualizar/$1');
+    $routes->delete('fotos/(:num)', 'FotoController::delete/$1');
+    $routes->post('sondagens/(:num)/fotos/reordenar', 'FotoController::reordenar/$1');
+
+    $routes->post('import/excel', 'ImportController::excel');
+    $routes->get('import/template', 'ImportController::template');
 });
