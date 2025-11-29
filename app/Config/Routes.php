@@ -15,6 +15,11 @@ $routes->setAutoRoute(false);
 
 $routes->get('/', 'Home::index');
 
+$routes->get('login', 'AuthWebController::loginPage');
+$routes->post('auth/login', 'AuthWebController::login');
+$routes->get('auth/logout', 'AuthWebController::logout');
+$routes->get('auth/forgot-password', 'AuthWebController::forgotPassword');
+
 $routes->group('admin', ['namespace' => 'App\Controllers\Admin'], function($routes) {
     $routes->get('/', 'AdminController::index');
     $routes->get('dashboard', 'AdminController::dashboard');
