@@ -15,6 +15,16 @@ $routes->setAutoRoute(false);
 
 $routes->get('/', 'Home::index');
 
+$routes->group('admin', ['namespace' => 'App\Controllers\Admin'], function($routes) {
+    $routes->get('/', 'AdminController::index');
+    $routes->get('dashboard', 'AdminController::dashboard');
+
+    $routes->get('sondagens', 'SondagemWebController::index');
+    $routes->get('sondagens/create', 'SondagemWebController::create');
+    $routes->get('sondagens/(:num)', 'SondagemWebController::show/$1');
+    $routes->get('sondagens/(:num)/edit', 'SondagemWebController::edit/$1');
+});
+
 $routes->group('api', ['namespace' => 'App\Controllers\API'], function($routes) {
 
     $routes->post('auth/login', 'AuthController::login');
