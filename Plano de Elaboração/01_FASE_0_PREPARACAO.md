@@ -1,16 +1,18 @@
 # FASE 0: PREPARAÇÃO DO AMBIENTE
 
 **Tempo estimado:** 1-2 dias  
-**Objetivo:** Configurar ambiente completo de desenvolvimento com CodeIgniter 4 e MySQL
+**Objetivo:** Configurar ambiente completo de desenvolvimento com CodeIgniter 4 e PostgreSQL/PostGIS
 
 ---
 
 ## 🎯 Objetivos
 
-- Configurar ambiente de desenvolvimento padronizado
+- Configurar ambiente de desenvolvimento padronizado com Docker
 - Instalar dependências base via Composer
 - Estruturar repositório Git
-- Configurar banco de dados MySQL
+- Configurar banco de dados PostgreSQL com extensão PostGIS
+- Configurar Redis para cache e filas
+- Configurar MinIO para armazenamento de arquivos (S3-compatible)
 
 ---
 
@@ -39,15 +41,27 @@ composer require --dev phpunit/phpunit      # Testes
 composer require --dev fakerphp/faker       # Dados fictícios para testes
 ```
 
-### 3. Configurar MySQL
+### 3. Configurar PostgreSQL com PostGIS
+
+**Opção A: Usando Docker (Recomendado)**
 
 ```bash
-# Comando 4: Criar banco de dados MySQL
-mysql -u root -p << EOF
-CREATE DATABASE geospt_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'geospt_user'@'localhost' IDENTIFIED BY 'SenhaSegura@2025';
-GRANT ALL PRIVILEGES ON geospt_db.* TO 'geospt_user'@'localhost';
-FLUSH PRIVILEGES;
+# Comando 4: Iniciar ambiente completo com docker-compose
+# Veja o arquivo docker-compose.yml na raiz do projeto
+docker compose up --build -d
+```
+
+**Opção B: Instalação local do PostgreSQL**
+
+```bash
+# Comando 4: Criar banco de dados PostgreSQL com PostGIS
+psql -U postgres << EOF
+CREATE DATABASE geospt_db;
+CREATE USER geospt_user WITH PASSWORD 'SenhaSegura@2025';
+GRANT ALL PRIVILEGES ON DATABASE geospt_db TO geospt_user;
+\c geospt_db
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS postgis_topology;
 EOF
 ```
 
@@ -74,17 +88,16 @@ app.sessionDriver = 'CodeIgniter\Session\Handlers\DatabaseHandler'
 app.sessionSavePath = 'ci_sessions'
 
 #--------------------------------------------------------------------
-# DATABASE
+# DATABASE - PostgreSQL/PostGIS
 #--------------------------------------------------------------------
 database.default.hostname = localhost
 database.default.database = geospt_db
 database.default.username = geospt_user
 database.default.password = SenhaSegura@2025
-database.default.DBDriver = MySQLi
+database.default.DBDriver = Postgre
 database.default.DBPrefix =
-database.default.port = 3306
-database.default.charset = utf8mb4
-database.default.DBCollat = utf8mb4_unicode_ci
+database.default.port = 5432
+database.default.charset = utf8
 
 #--------------------------------------------------------------------
 # JWT
@@ -96,6 +109,23 @@ JWT_TIME_TO_LIVE = 28800
 # ENCRYPTION
 #--------------------------------------------------------------------
 encryption.key = hex2bin:sua_chave_de_criptografia_64_caracteres_hex
+
+#--------------------------------------------------------------------
+# MINIO (S3-Compatible Storage)
+#--------------------------------------------------------------------
+MINIO_ENDPOINT = http://minio:9000
+MINIO_KEY = minioadmin
+MINIO_SECRET = minioadmin
+MINIO_BUCKET = geospt
+MINIO_USE_SSL = false
+
+#--------------------------------------------------------------------
+# REDIS (Queue/Cache)
+#--------------------------------------------------------------------
+REDIS_HOST = redis
+REDIS_PORT = 6379
+REDIS_PASSWORD =
+REDIS_DATABASE = 0
 
 #--------------------------------------------------------------------
 # UPLOADS
@@ -115,10 +145,35 @@ php -r "echo bin2hex(random_bytes(32)) . PHP_EOL;"
 openssl rand -hex 32
 ```
 
-### 6. Configurar Permissões
+### 6. Iniciar Ambiente Docker (Desenvolvimento)
 
 ```bash
-# Comando 8: Configurar permissões de diretórios
+# Comando 8: Iniciar todos os serviços com Docker Compose
+docker compose up --build -d
+
+# Verificar status dos serviços
+docker compose ps
+
+# Executar migrations
+docker compose exec app php spark migrate
+
+# (Opcional) Executar seeder inicial
+docker compose exec app php spark db:seed InitialDataSeeder
+```
+
+**Serviços disponíveis:**
+- **Aplicação PHP**: http://localhost:8080
+- **PostgreSQL/PostGIS**: localhost:5432
+- **MinIO Console**: http://localhost:9001 (minioadmin/minioadmin)
+- **MinIO API**: http://localhost:9000
+- **Redis**: localhost:6379
+
+Para instruções detalhadas de configuração Docker, consulte: **[docs/PHASE_0_SETUP.md](../docs/PHASE_0_SETUP.md)**
+
+### 7. Configurar Permissões (Instalação Local)
+
+```bash
+# Comando 9: Configurar permissões de diretórios (apenas se não usar Docker)
 chmod -R 777 writable/
 mkdir -p writable/uploads/fotos
 mkdir -p writable/uploads/imports
@@ -128,10 +183,10 @@ mkdir -p writable/uploads/logos
 chmod -R 777 writable/uploads/
 ```
 
-### 7. Criar Estrutura de Diretórios
+### 8. Criar Estrutura de Diretórios
 
 ```bash
-# Comando 9: Criar estrutura completa de pastas
+# Comando 10: Criar estrutura completa de pastas
 mkdir -p app/Controllers/Api
 mkdir -p app/Controllers/Admin
 mkdir -p app/Controllers/Reports
@@ -441,13 +496,18 @@ $routes->get('reports/sondagem/(:num)/preview', 'Reports\SondagemReportControlle
 
 - [ ] Projeto CodeIgniter 4 criado
 - [ ] Dependências Composer instaladas (TCPDF, PHPSpreadsheet, JWT, etc.)
-- [ ] Banco de dados MySQL criado
+- [ ] Banco de dados PostgreSQL/PostGIS configurado
+- [ ] Ambiente Docker configurado (docker-compose.yml, Dockerfile, nginx.conf)
+- [ ] Redis configurado para cache e filas
+- [ ] MinIO configurado para armazenamento de arquivos
 - [ ] Arquivo .env configurado corretamente
 - [ ] Chaves de segurança geradas (JWT, Encryption)
 - [ ] Diretórios de upload criados com permissões
 - [ ] Estrutura de pastas completa
 - [ ] Rotas base configuradas
 - [ ] Timezone configurado para America/Sao_Paulo
+- [ ] Documentação de setup (docs/PHASE_0_SETUP.md) criada
+- [ ] CI/CD básico configurado (.github/workflows/ci.yml)
 - [ ] Git inicializado (opcional)
 
 ---

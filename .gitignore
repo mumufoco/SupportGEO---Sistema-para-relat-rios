@@ -187,3 +187,12 @@ public/css/compiled/*
 !public/css/compiled/.gitkeep
 public/js/compiled/*
 !public/js/compiled/.gitkeep
+
+#-------------------------
+# Docker
+#-------------------------
+# Docker volumes and data
+docker-compose.override.yml
+.docker/
+docker/data/*
+!docker/data/.gitkeep
