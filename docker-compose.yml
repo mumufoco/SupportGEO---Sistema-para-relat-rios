@@ -1,0 +1,166 @@
+version: '3.8'
+
+services:
+  # PostgreSQL + PostGIS
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: geospt_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: geospt_db
+      POSTGRES_USER: geospt_user
+      POSTGRES_PASSWORD: geospt_password
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geospt_user -d geospt_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (Cache & Queue)
+  redis:
+    image: redis:7-alpine
+    container_name: geospt_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # MinIO (S3-compatible Object Storage)
+  minio:
+    image: minio/minio:latest
+    container_name: geospt_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MinIO Client - Create buckets on startup
+  minio-init:
+    image: minio/mc:latest
+    container_name: geospt_minio_init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin123; do
+        echo 'Waiting for MinIO...';
+        sleep 2;
+      done;
+      /usr/bin/mc mb myminio/geospt-uploads || true;
+      /usr/bin/mc mb myminio/geospt-pdfs || true;
+      /usr/bin/mc mb myminio/geospt-thumbnails || true;
+      /usr/bin/mc anonymous set download myminio/geospt-uploads;
+      /usr/bin/mc anonymous set download myminio/geospt-pdfs;
+      /usr/bin/mc anonymous set download myminio/geospt-thumbnails;
+      echo 'MinIO buckets created successfully';
+      "
+
+  # Aplicação PHP
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: geospt_app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./writable:/var/www/html/writable
+      - ./public:/var/www/html/public
+    environment:
+      CI_ENVIRONMENT: development
+      database.default.hostname: db
+      database.default.database: geospt_db
+      database.default.username: geospt_user
+      database.default.password: geospt_password
+      database.default.DBDriver: Postgre
+      database.default.port: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_BUCKET: geospt-uploads
+      MINIO_REGION: us-east-1
+      MINIO_USE_SSL: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - geospt_network
+
+  # Worker para processamento de jobs (PDF, Images, Imports)
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: geospt_worker
+    restart: unless-stopped
+    command: php spark worker:run
+    volumes:
+      - ./writable:/var/www/html/writable
+    environment:
+      CI_ENVIRONMENT: development
+      database.default.hostname: db
+      database.default.database: geospt_db
+      database.default.username: geospt_user
+      database.default.password: geospt_password
+      database.default.DBDriver: Postgre
+      database.default.port: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_BUCKET: geospt-uploads
+      MINIO_REGION: us-east-1
+      MINIO_USE_SSL: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - geospt_network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  geospt_network:
+    driver: bridge
