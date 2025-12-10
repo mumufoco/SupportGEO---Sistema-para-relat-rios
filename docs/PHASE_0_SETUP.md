@@ -134,6 +134,8 @@ docker compose exec app composer install
 docker compose exec app composer update
 ```
 
+> **Note on Vendor Directory**: This repository supports versioning the `vendor/` directory for deployment scenarios requiring guaranteed dependency availability. See **[docs/COMMIT_VENDOR.md](COMMIT_VENDOR.md)** for safe vendor commit procedures, including size checks, license verification, and Git LFS recommendations.
+
 ### Run PHPUnit Tests
 ```bash
 docker compose exec app vendor/bin/phpunit
