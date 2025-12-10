@@ -1,5 +1,19 @@
+# GeoSPT Docker Compose Configuration for DEVELOPMENT
+# 
+# ⚠️ SECURITY WARNING: This configuration uses default credentials suitable for
+# development environments only. DO NOT use these credentials in production!
+#
+# For production deployment:
+# - Use environment variables for all sensitive data
+# - Implement proper secrets management
+# - Change all default passwords
+# - Enable SSL/TLS for all services
+# - Configure proper network security
+
 services:
   # PostgreSQL with PostGIS
+  # SECURITY NOTE: Default credentials are for DEVELOPMENT ONLY
+  # For production, use environment variables and secrets management
   db:
     image: postgis/postgis:15-3.4
     container_name: geospt_db
@@ -7,7 +21,7 @@ services:
     environment:
       POSTGRES_DB: geospt_db
       POSTGRES_USER: geospt_user
-      POSTGRES_PASSWORD: SenhaSegura@2025
+      POSTGRES_PASSWORD: SenhaSegura@2025  # DEVELOPMENT ONLY - Change for production!
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
@@ -39,13 +53,14 @@ services:
       retries: 5
 
   # MinIO (S3-compatible storage)
+  # SECURITY NOTE: Default credentials are for DEVELOPMENT ONLY
   minio:
     image: minio/minio:latest
     container_name: geospt_minio
     restart: unless-stopped
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: minioadmin  # DEVELOPMENT ONLY - Change for production!
+      MINIO_ROOT_PASSWORD: minioadmin  # DEVELOPMENT ONLY - Change for production!
     ports:
       - "9000:9000"
       - "9001:9001"
