@@ -111,10 +111,11 @@ CHANGELOG text eol=lf
 # Merge strategies
 ################################################################################
 
-# Composer lock file - always prefer newer version
+# Composer lock file - conflicts should be resolved by regenerating
+# Use: rm composer.lock && composer install
 composer.lock merge=binary
 
-# Package manager lock files
+# Package manager lock files - regenerate on conflict
 package-lock.json merge=binary
 yarn.lock merge=binary
 

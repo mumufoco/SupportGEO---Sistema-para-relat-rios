@@ -175,8 +175,13 @@ sudo apt-get install git-lfs
 # macOS
 brew install git-lfs
 
-# Initialize in repository
+# Navigate to your repository directory
+cd /path/to/SupportGEO
+
+# Initialize Git LFS in the repository (one-time setup)
 git lfs install
+
+# This creates Git hooks and configures LFS for this repository
 ```
 
 ### Configuring Git LFS for Vendor

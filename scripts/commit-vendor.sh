@@ -142,7 +142,6 @@ check_large_files() {
     if [ -n "$large_files" ]; then
         print_warning "Found files larger than 5MB:"
         echo "$large_files" | while read -r file; do
-            local file_size
             file_size=$(du -h "$file" 2>/dev/null | cut -f1 || echo "unknown")
             echo "  - $file ($file_size)"
         done
@@ -184,7 +183,8 @@ validate_size() {
 show_preview() {
     print_header "PREVIEW: Files to be Added"
     
-    git add --dry-run "$VENDOR_DIR" 2>&1 | head -n 20
+    print_info "Sample of files to be committed:"
+    find "$VENDOR_DIR" -type f 2>/dev/null | head -n 20 | sed 's/^/  /'
     
     local file_count
     file_count=$(find "$VENDOR_DIR" -type f | wc -l)
