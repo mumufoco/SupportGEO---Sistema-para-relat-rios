@@ -15,7 +15,9 @@
         "tecnickcom/tcpdf": "^6.6",
         "phpoffice/phpspreadsheet": "^1.29",
         "firebase/php-jwt": "^6.8",
-        "intervention/image": "^2.7"
+        "intervention/image": "^2.7",
+        "predis/predis": "^2.2",
+        "aws/aws-sdk-php": "^3.296"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9",
