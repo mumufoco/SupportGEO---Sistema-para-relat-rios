@@ -84,7 +84,10 @@ phpunit
 #-------------------------
 # Composer
 #-------------------------
-vendor/
+# NOTE: vendor/ exclusion intentionally removed to allow versioning composer dependencies
+# See docs/COMMIT_VENDOR.md for safe vendor commit procedures and best practices
+# Removed by: GitHub Copilot (automated change for vendor versioning support)
+# vendor/
 
 #-------------------------
 # IDE / Development Files

@@ -144,6 +144,8 @@ docker compose exec app composer update
 docker compose exec app composer dump-autoload
 ```
 
+> **💡 Nota**: O repositório suporta versionamento do diretório `vendor/` para cenários que requerem disponibilidade garantida de dependências. Consulte **[docs/COMMIT_VENDOR.md](docs/COMMIT_VENDOR.md)** para procedimentos seguros.
+
 ### Testes
 
 ```bash
